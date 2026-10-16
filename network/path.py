@@ -60,7 +60,73 @@ class PathFinder:
                 start_station_name and end_station_name are the same.
         """
         # TODO: Complete this method
-        return [] 
+        try:
+            # Find the corresponsing ids for start station and end station
+            start_station_id = None
+            end_station_id = None
+            for id, station in self.tubemap.stations.items():
+                if station.name == start_station_name:
+                    start_station_id = id
+                if station.name == end_station_name:
+                    end_station_id = id
+                if (start_station_id is not None) and (end_station_id is not None):
+                    break
+            
+            # start_station_name or end_station_name does not exist
+            if (start_station_id is None) or (end_station_id is None):
+                return None
+            
+            # start_station_name and end_station_name are the same
+            if start_station_id == end_station_id:
+                return [self.tubemap.stations[start_station_id]]
+            
+            # Initialise the Dijkstra's algorithm
+            import heapq
+            dist = {station_id:float("inf") for station_id in self.tubemap.stations}
+            dist[start_station_id] = 0
+            predecessor_dict = {station_id: None for station_id in self.tubemap.stations}
+            priority_queue = [(0, start_station_id)]
+            
+            while priority_queue:
+                current_time, station_id = heapq.heappop(priority_queue)
+                # Skip if we already finalised this station
+                if current_time>dist[station_id]:
+                    continue
+                # Early exit when we reach the destination
+                if station_id == end_station_id:
+                    break
+                
+                # Explore the neighbour
+                for neighbour_station_id in self.graph[station_id]:
+                    connections = self.graph[station_id][neighbour_station_id]
+                    
+                    # Get the fastest connection
+                    connection = min(connections, key=lambda connection: connection.time)
+                    new_time = current_time + connection.time
+                    
+                    if new_time<dist[neighbour_station_id]:
+                        dist[neighbour_station_id] = new_time
+                        predecessor_dict[neighbour_station_id] = station_id
+                        heapq.heappush(priority_queue, (new_time, neighbour_station_id))
+            
+            if dist[end_station_id] == float("inf"):
+                return f"There is no path from {start_station_name} to {end_station_name}."
+            
+            # Make list of Station objects corresponding to shortest path
+            # from end_station_name to start_station_name by tracking predecessor_dict.
+            path = []
+            current_id = end_station_id
+            while current_id is not None:
+                path.append(self.tubemap.stations[current_id])
+                current_id = predecessor_dict[current_id]
+            
+            # Reverse the list
+            path = path[::-1]
+            
+            return path
+            
+        except KeyError:
+            return None
 
 
 def test_shortest_path():

@@ -6,7 +6,7 @@ class NeighbourGraphBuilder:
     """
 
     def __init__(self):
-        pass
+        self.graph = {}
 
     def build(self, tubemap):
         """ Builds a graph encoding neighbouring connections between stations.
@@ -71,7 +71,32 @@ class NeighbourGraphBuilder:
                 the method should return an empty dict.
         """
         # TODO: Complete this method
-        return dict()
+        try:
+            for station_id in tubemap.stations:
+                neighbour_staion_dict = {}
+                
+                for connection in tubemap.connections:
+                    if tubemap.stations[station_id] in connection.stations:
+                        
+                        # Extract the neighbour station
+                        stations_set = connection.stations
+                        copied_stations_set = stations_set.copy()
+                        copied_stations_set.remove(tubemap.stations[station_id])
+                        neighbour_station = copied_stations_set.pop()
+                        
+                        # A pair of stations may be connected via multiple lines
+                        if neighbour_station.id in neighbour_staion_dict:
+                            connection_list = neighbour_staion_dict[neighbour_station.id]
+                            connection_list.append(connection)
+                        else:
+                            neighbour_staion_dict[neighbour_station.id] = [connection]
+                        
+                self.graph[station_id] = neighbour_staion_dict
+            
+            return self.graph
+        
+        except AttributeError:
+            return dict()
 
 
 def test_graph():
@@ -82,7 +107,9 @@ def test_graph():
     graph_builder = NeighbourGraphBuilder()
     graph = graph_builder.build(tubemap)
 
-    print(graph)
+    print(graph["11"]["163"])
+    print(graph["163"]["11"])
+    print(graph_builder.build(None))
 
 
 if __name__ == "__main__":

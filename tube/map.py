@@ -44,7 +44,46 @@ class TubeMap:
             None
         """
         # TODO: Complete this method
-        return
+        import json
+        from math import floor, ceil
+        from tube.components import Station, Line, Connection
+        
+        try:
+            # Initialise data
+            with open(filepath, "r") as jsonfile:
+                tube_data = json.load(jsonfile)
+                stations_info = tube_data["stations"]
+                lines_info = tube_data["lines"]
+                connections_info = tube_data["connections"]
+                
+                for station in stations_info:
+                    id, name, zones = station["id"], station["name"], float(station["zone"])
+                    floored_zone = floor(zones)  # Transfer the non-integer zones
+                    ceiled_zone = ceil(zones)
+                    if floored_zone != ceiled_zone:
+                        zones = {floored_zone, ceiled_zone}
+                    else:
+                        zones = {floored_zone}
+                    station_instance = Station(id, name, zones)
+                    self.stations[f"{id}"] = station_instance
+                
+                for line in lines_info:
+                    id, name = line["line"], line["name"]
+                    line_instance = Line(id, name)
+                    self.lines[f"{id}"] = line_instance
+                
+                for connection in connections_info:
+                    station1 = self.stations[connection["station1"]]
+                    station2 = self.stations[connection["station2"]]
+                    stations = {station1, station2}
+                    line = self.lines[connection["line"]]
+                    time = int(connection["time"])
+                    connection_instance = Connection(stations, line, time)
+                    self.connections.append(connection_instance)
+                
+        except FileNotFoundError:
+            print("Target file is not found. Please try again.")
+            return None
 
 
 def test_import():

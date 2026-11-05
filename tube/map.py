@@ -47,6 +47,9 @@ class TubeMap:
         import json
         from math import floor, ceil
         from tube.components import Station, Line, Connection
+        self.stations = {}  # key: id (str), value: Station instance
+        self.lines = {}  # key: id (str), value: Line instance
+        self.connections = []  # list of Connection instances
         
         try:
             # Initialise data
